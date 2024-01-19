@@ -1,13 +1,13 @@
 from datetime import timedelta, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from starlette import status
-from jose import jwt, JWTError
+import jwt
 
 from database import SessionLocal
 from models import Users
@@ -31,6 +31,7 @@ class CreateUserRequest(BaseModel):
     last_name: str
     password: str
     role: str
+    phone_number: str
 
 
 class Token(BaseModel):
@@ -74,7 +75,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         if username is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user.")
         return {"username": username, "id": user_id, "user_role": user_role}
-    except JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user.")
 
 
@@ -86,6 +87,7 @@ async def create_user(db: db_dependency, create_user_request: CreateUserRequest)
         first_name=create_user_request.first_name,
         last_name=create_user_request.last_name,
         role=create_user_request.role,
+        phone_number=create_user_request.phone_number,
         hashed_password=bcrypt_context.hash(create_user_request.password),
         is_active=True
     )

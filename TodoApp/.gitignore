@@ -1,0 +1,6 @@
+../.DS_Store
+../.idea/
+.idea/
+__pycache__/
+env/
+routers/__pycache__/
